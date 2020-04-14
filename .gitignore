@@ -1,0 +1,4 @@
+node_modules
+
+src/credentials.json
+src/config.json

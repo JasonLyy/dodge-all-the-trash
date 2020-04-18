@@ -4,9 +4,9 @@
     "description": "",
     "main": "index.js",
     "scripts": {
-        "test": "echo \"Error: no test specified\" && exit 1",
         "lint": "tsc --noEmit && eslint '*/**/*.{js,ts,tsx}' --quiet --fix",
-        "start:dev": "nodemon"
+        "start:dev": "nodemon",
+        "build": "tsc"
     },
     "author": "",
     "license": "ISC",
@@ -25,6 +25,8 @@
     },
     "dependencies": {
         "@google-cloud/firestore": "^3.7.4",
-        "discord.js": "^12.1.1"
+        "discord.js": "^12.1.1",
+        "dotenv": "^8.2.0",
+        "firebase-admin": "^8.10.0"
     }
 }

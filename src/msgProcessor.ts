@@ -1,107 +1,111 @@
 /* eslint-disable @typescript-eslint/camelcase */
 import * as Discord from 'discord.js';
+import { Firestore } from '@google-cloud/firestore';
+import { MessageProcessor } from './common/types';
 import * as config from './config.json';
-import getTrashPlayers from './getTrash';
-import addTrashPlayer from './addTrash';
+import getTrash from './getTrash';
+import addTrash from './addTrash';
 
-const getUserInput = (message: string): [string[], string | undefined] => {
-    const args = message.slice(config.prefix.length).trim().split(/ +/g);
-    const command = args.shift()?.toLowerCase();
+const processInput = (db: Firestore): MessageProcessor => {
+    const getUserInput = (message: string): [string[], string | undefined] => {
+        const args = message.slice(config.prefix.length).trim().split(/ +/g);
+        const command = args.shift()?.toLowerCase();
 
-    return [args, command];
-};
-
-const getPlayerNames = (args: string[]): string[] => {
-    const getPastedPlayerNames = (splittedByLineBreak: string[]): string[] => {
-        const playerNames = splittedByLineBreak.map((line) => {
-            return line.split(' ').slice(0, -3).join(' '); // remove last three words per line (i.e. joined the lobby)
-        });
-        return playerNames;
+        return [args, command];
     };
 
-    const rejoinedString = args.join(' '); // rejoin args to handle special player name cases (spaces and pasted)
-    const splitByLinebreak = rejoinedString.split('\n'); // pasted player names will have line breaks
+    const getPlayerNames = (args: string[]): string[] => {
+        const getPastedPlayerNames = (splittedByLineBreak: string[]): string[] => {
+            const playerNames = splittedByLineBreak.map((line) => {
+                return line.split(' ').slice(0, -3).join(' '); // remove last three words per line (i.e. joined the lobby)
+            });
+            return playerNames;
+        };
 
-    const pastedPlayerNames = splitByLinebreak.length > 1;
+        const rejoinedString = args.join(' '); // rejoin args to handle special player name cases (spaces and pasted)
+        const splitByLinebreak = rejoinedString.split('\n'); // pasted player names will have line breaks
 
-    let finalPlayerNames = splitByLinebreak; // without linebreaks, player name stored in index 0
+        const pastedPlayerNames = splitByLinebreak.length > 1;
 
-    if (pastedPlayerNames) {
-        finalPlayerNames = getPastedPlayerNames(splitByLinebreak);
-    }
-    return finalPlayerNames;
-};
+        let finalPlayerNames = splitByLinebreak; // without linebreaks, player name stored in index 0
 
-const getPlayerNameAndComment = (args: string[]): [string, string] => {
-    const [playerName, comment] = args
-        .join(' ')
-        .split(`"`)
-        .slice(0, 2)
-        .map((word) => word.trim());
+        if (pastedPlayerNames) {
+            finalPlayerNames = getPastedPlayerNames(splitByLinebreak);
+        }
+        return finalPlayerNames;
+    };
 
-    return [playerName, comment];
-};
+    const getPlayerNameAndComment = (args: string[]): [string, string] => {
+        const [playerName, comment] = args
+            .join(' ')
+            .split(`"`)
+            .slice(0, 2)
+            .map((word) => word.trim());
 
-const processCommandAdd = async (message: Discord.Message, args: string[]): Promise<void> => {
-    const [playerNameToAdd, comment] = getPlayerNameAndComment(args);
+        return [playerName, comment];
+    };
 
-    if (playerNameToAdd) {
-        await addTrashPlayer({
-            comment: comment ? comment : '',
-            player_name: playerNameToAdd,
-            player_name_stripped: playerNameToAdd.toLowerCase().replace(/\s/g, ''),
-            region: 'OCE',
-            report_timestamp: new Date(),
-            reported_by: `${message.author.username}#${message.author.discriminator}`,
-        });
+    const processCommandAdd = async (message: Discord.Message, args: string[]): Promise<void> => {
+        const [playerNameToAdd, comment] = getPlayerNameAndComment(args);
 
-        message.reply(`Succesfully added ${playerNameToAdd} to dodge list`);
-    } else {
-        message.reply(`Invalid Input. Valid Format: E.g. !add TrashPlayer "inted my game"`);
-    }
-};
+        if (playerNameToAdd) {
+            await addTrash(db)({
+                comment: comment ? comment : '',
+                player_name: playerNameToAdd,
+                player_name_stripped: playerNameToAdd.toLowerCase().replace(/\s/g, ''),
+                region: 'OCE',
+                report_timestamp: new Date(),
+                reported_by: `${message.author.username}#${message.author.discriminator}`,
+            });
 
-const processCommandCheck = async (message: Discord.Message, args: string[]): Promise<void> => {
-    const playerNamesToCheck = getPlayerNames(args);
-    const trashPlayersEmbed = await getTrashPlayers(playerNamesToCheck);
+            message.reply(`Succesfully added ${playerNameToAdd} to dodge list`);
+        } else {
+            message.reply(`Invalid Input. Valid Format: E.g. !add TrashPlayer "inted my game"`);
+        }
+    };
 
-    if (trashPlayersEmbed.length > 0) {
-        trashPlayersEmbed.forEach((embed) => {
-            const hasBadComments = embed.fields.length > 0;
-            if (hasBadComments) {
-                message.reply(embed);
+    const processCommandCheck = async (message: Discord.Message, args: string[]): Promise<void> => {
+        const playerNamesToCheck = getPlayerNames(args);
+        const trashPlayersEmbed = await getTrash(db)(playerNamesToCheck);
+
+        if (trashPlayersEmbed.length > 0) {
+            trashPlayersEmbed.forEach((embed) => {
+                const hasBadComments = embed.fields.length > 0;
+                if (hasBadComments) {
+                    message.reply(embed);
+                }
+            });
+        } else {
+            message.reply('No Trash So Far..');
+        }
+    };
+
+    return async (message: Discord.Message): Promise<void> => {
+        try {
+            const validMessage = message.content.startsWith(config.prefix) || message.author.bot; // && message.channel.id === config.channelId;
+
+            if (!validMessage) {
+                return;
             }
-        });
-    } else {
-        message.reply('No Trash So Far..');
-    }
-};
 
-const processInput = async (message: Discord.Message): Promise<void> => {
-    try {
-        const validMessage = message.content.startsWith(config.prefix) || message.author.bot; // && message.channel.id === config.channelId;
+            const [args, command] = getUserInput(message.content);
+            switch (command) {
+                case 'add':
+                    await processCommandAdd(message, args);
+                    break;
 
-        if (!validMessage) {
-            return;
+                case 'check':
+                    await processCommandCheck(message, args);
+                    break;
+
+                case 'help':
+                    break;
+            }
+        } catch (error) {
+            message.reply(`Unknown error has occured`);
+            console.log('ERROR: ', error);
         }
-
-        const [args, command] = getUserInput(message.content);
-        switch (command) {
-            case 'add':
-                await processCommandAdd(message, args);
-                break;
-
-            case 'check':
-                await processCommandCheck(message, args);
-                break;
-
-            case 'help':
-                break;
-        }
-    } catch (error) {
-        message.reply(`Unknown error has occured`);
-        console.log('ERROR: ', error);
-    }
+    };
 };
 
 export default processInput;

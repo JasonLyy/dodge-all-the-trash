@@ -114,7 +114,6 @@ dist
 .yarn/build-state.yml
 .pnp.*
 
-src/credentials.json
-src/config.json
-
 dist
+
+credentials.json

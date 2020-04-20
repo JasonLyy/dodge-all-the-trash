@@ -1,3 +1,5 @@
+import { Message, MessageEmbed } from 'discord.js';
+
 export interface TrashSummary {
     playerName?: string;
     region?: string;
@@ -16,4 +18,12 @@ export interface Report {
     region: string;
     report_timestamp: Date;
     reported_by: string;
+}
+
+export interface MessageProcessor {
+    (message: Message): Promise<void>;
+}
+
+export interface TrashGetter {
+    (players: string[]): Promise<MessageEmbed[]>;
 }

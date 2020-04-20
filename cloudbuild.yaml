@@ -3,7 +3,16 @@ steps:
       args: [build, -t, gcr.io/$PROJECT_ID/dodge-all-the-trash, .]
 
     - name: gcr.io/cloud-builders/gcloud
-      args: [compute, instance-groups, managed, rolling-action, restart, dodge-all-the-trash-instance-group, --zone=us-west1-b
+      args:
+          [
+              compute,
+              instance-groups,
+              managed,
+              rolling-action,
+              restart,
+              dodge-all-the-trash-instance-group,
+              --zone=us-west1-b,
+          ]
 
 images:
     - gcr.io/dodge-all-the-trash/dodge-all-the-trash

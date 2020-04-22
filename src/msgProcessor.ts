@@ -86,6 +86,9 @@ const processInput = (db: Firestore): MessageProcessor => {
                 ? config.channelId
                 : config.channelId_dev;
 
+            console.log(environmentChannelId);
+            console.log(process.env.GOOGLE_APPLICATION_CREDENTIALS);
+
             const validMessage =
                 message.content.startsWith(config.prefix) &&
                 !message.author.bot &&

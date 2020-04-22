@@ -16,6 +16,8 @@ const initialiseFireStore = (): Firestore => {
         credential: admin.credential.applicationDefault(),
     });
 
+    process.env.GOOGLE_APPLICATION_CREDENTIALS = undefined;
+
     return admin.firestore();
 };
 

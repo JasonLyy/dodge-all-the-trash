@@ -82,7 +82,12 @@ const processInput = (db: Firestore): MessageProcessor => {
 
     return async (message: Discord.Message): Promise<void> => {
         try {
-            const validMessage = message.content.startsWith(config.prefix) || message.author.bot; // && message.channel.id === config.channelId;
+            const environmentChannelId = !process.env.GOOGLE_APPLICATION_CREDENTIALS
+                ? config.channelId
+                : config.channelId_dev;
+
+            const validMessage =
+                message.content.startsWith(config.prefix) && message.author.bot && environmentChannelId;
 
             if (!validMessage) {
                 return;

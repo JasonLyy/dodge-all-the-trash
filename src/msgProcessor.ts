@@ -82,7 +82,7 @@ const processInput = (db: Firestore): MessageProcessor => {
 
     return async (message: Discord.Message): Promise<void> => {
         try {
-            const environmentChannelId = !process.env.GOOGLE_APPLICATION_CREDENTIALS
+            const environmentChannelId = process.env.GOOGLE_APPLICATION_CREDENTIALS
                 ? config.channelId
                 : config.channelId_dev;
 

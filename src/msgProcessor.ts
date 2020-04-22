@@ -87,7 +87,7 @@ const processInput = (db: Firestore): MessageProcessor => {
                 : config.channelId_dev;
 
             const validMessage =
-                message.content.startsWith(config.prefix) && message.author.bot && environmentChannelId;
+                message.content.startsWith(config.prefix) && !message.author.bot && environmentChannelId;
 
             if (!validMessage) {
                 return;

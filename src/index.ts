@@ -20,20 +20,10 @@ const initialiseFireStore = (): Firestore => {
     return admin.firestore();
 };
 
-const getDiscordAccessToken = async (): Promise<string | undefined> => {
-    const gcpMetaDataAvailable = await gcpMetadata.isAvailable();
-
-    if (gcpMetaDataAvailable) {
-        return gcpMetadata.instance('DISCORD_SECRET_TOKEN');
-    } else {
-        return process.env.DISCORD_SECRET_TOKEN;
-    }
-};
-
 const db = initialiseFireStore();
 
 (async (): Promise<void> => {
-    const discordToken = await getDiscordAccessToken();
+    const discordToken = process.env.DISCORD_SECRET_TOKEN;
     const client = new Discord.Client();
 
     client.on('ready', async () => {

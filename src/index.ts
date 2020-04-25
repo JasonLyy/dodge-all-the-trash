@@ -7,20 +7,8 @@ import { Firestore } from '@google-cloud/firestore';
 dotenv.config({ path: resolve(__dirname, '../.env') });
 
 const initialiseFireStore = (): Firestore => {
-    // Invoked from local machine
-    const currentGoogleCredentials = process.env.GOOGLE_APPLICATION_CREDENTIALS;
-
-    if (!currentGoogleCredentials) {
-        process.env.GOOGLE_APPLICATION_CREDENTIALS = resolve(__dirname, './credentials.json');
-    }
-
-    admin.initializeApp({
-        credential: admin.credential.applicationDefault(),
-    });
-
-    // Restore back to default
-    process.env.GOOGLE_APPLICATION_CREDENTIALS = currentGoogleCredentials;
-
+    admin.initializeApp();
+    admin.auth();
     return admin.firestore();
 };
 

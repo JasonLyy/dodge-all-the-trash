@@ -11,8 +11,8 @@ steps:
               rolling-action,
               restart,
               dodge-all-the-trash-instance-group,
-              --zone=us-west1-b,
+              --zone=us-central1-a,
           ]
 
 images:
-    - gcr.io/dodge-all-the-trash/dodge-all-the-trash
+    - gcr.io/dodge-all-the-trash-275313/dodge-all-the-trash

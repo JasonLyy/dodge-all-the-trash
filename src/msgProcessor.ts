@@ -5,6 +5,7 @@ import { MessageProcessor } from './common/types';
 import * as config from './config.json';
 import getTrash from './getTrash';
 import addTrash from './addTrash';
+import getHelp from './getHelp';
 
 const processInput = (db: Firestore): MessageProcessor => {
     const getUserInput = (message: string): [string[], string | undefined] => {
@@ -80,17 +81,19 @@ const processInput = (db: Firestore): MessageProcessor => {
         }
     };
 
+    const processCommandHelp = (message: Discord.Message): void => {
+        const helpEmbed = getHelp();
+        message.reply(helpEmbed);
+    };
+
     return async (message: Discord.Message): Promise<void> => {
         try {
-            const environmentChannelId = !process.env.GOOGLE_APPLICATION_CREDENTIALS
-                ? config.channelId
-                : config.channelId_dev;
-
+            const environmentChannelId = process.env.DEV ? config.channelId_dev : config.channelId;
             const validMessage =
                 message.content.startsWith(config.prefix) &&
                 !message.author.bot &&
                 environmentChannelId === message.channel.id;
-
+            console.log(validMessage);
             if (!validMessage) {
                 return;
             }
@@ -106,7 +109,7 @@ const processInput = (db: Firestore): MessageProcessor => {
                     break;
 
                 case 'help':
-                    break;
+                    processCommandHelp(message);
             }
         } catch (error) {
             message.reply(`Unknown error has occured`);

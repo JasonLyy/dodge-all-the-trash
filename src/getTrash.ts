@@ -50,8 +50,6 @@ const getTrash = (db: Firestore): TrashGetter => {
                 [],
             );
 
-            console.log(trashEmbedFields);
-
             return new MessageEmbed()
                 .setColor('#0099ff')
                 .setTitle(`Trash Name: ${playerTrashSummary.playerName}`)

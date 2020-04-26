@@ -11,7 +11,9 @@ const getHelp = (): MessageEmbed => {
             name: '!check [champion select text]',
             value:
                 'E.g. !check MrAznJzn joined the lobby\nJalapeno joined the lobby\nSteel Tempest joined the lobby\nsongbao joined the lobby\nRiven Uce joined the lobby',
-        });
+        })
+        .addFields({ name: '!help', value: 'E.g. !help' })
+        .addFields({ name: '!list', value: 'E.g. !list' });
 };
 
 export default getHelp;

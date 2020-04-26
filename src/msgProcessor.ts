@@ -6,6 +6,7 @@ import * as config from './config.json';
 import getTrash from './getTrash';
 import addTrash from './addTrash';
 import getHelp from './getHelp';
+import listTrash from './listTrash';
 
 const processInput = (db: Firestore): MessageProcessor => {
     const getUserInput = (message: string): [string[], string | undefined] => {
@@ -86,6 +87,11 @@ const processInput = (db: Firestore): MessageProcessor => {
         message.reply(helpEmbed);
     };
 
+    const processCommandList = async (message: Discord.Message): Promise<void> => {
+        const listEmbed = await listTrash(db);
+        message.reply(listEmbed);
+    };
+
     return async (message: Discord.Message): Promise<void> => {
         try {
             const environmentChannelId = process.env.DEV ? config.channelId_dev : config.channelId;
@@ -93,7 +99,6 @@ const processInput = (db: Firestore): MessageProcessor => {
                 message.content.startsWith(config.prefix) &&
                 !message.author.bot &&
                 environmentChannelId === message.channel.id;
-            console.log(validMessage);
             if (!validMessage) {
                 return;
             }
@@ -110,6 +115,10 @@ const processInput = (db: Firestore): MessageProcessor => {
 
                 case 'help':
                     processCommandHelp(message);
+                    break;
+                case 'list':
+                    await processCommandList(message);
+                    break;
             }
         } catch (error) {
             message.reply(`Unknown error has occured`);
